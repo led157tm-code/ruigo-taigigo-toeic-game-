@@ -1,0 +1,15 @@
+{
+  "name": "TOEIC 類語対義語ゲーム",
+  "short_name": "TOEIC単語",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#eef3ff",
+  "theme_color": "#eef3ff",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
