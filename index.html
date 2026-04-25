@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -10,12 +10,9 @@ body{
   font-family:sans-serif;
   text-align:center;
   background:#eef3ff;
-  transition:0.2s;
 }
 
-.shake{
-  animation:shake 0.2s;
-}
+.shake{animation:shake 0.2s;}
 
 @keyframes shake{
   0%{transform:translateX(0);}
@@ -25,10 +22,8 @@ body{
   100%{transform:translateX(0);}
 }
 
-#target{
-  font-size:26px;
-  margin:10px;
-}
+#target{font-size:26px;margin:10px;}
+#jp{margin:10px;color:#333;font-weight:bold;}
 
 .grid{
   display:grid;
@@ -44,261 +39,504 @@ body{
   padding:12px;
   border-radius:10px;
   cursor:pointer;
-  transition:0.2s;
 }
 
-.correct{
-  background:#4CAF50;
-  color:white;
-  transform:scale(1.05);
-}
-
-.wrong{
-  background:#ff4d4d;
-  color:white;
-}
-
-#controls{
-  margin:10px;
-}
+.correct{background:#4CAF50;color:white;}
+.wrong{background:#ff4d4d;color:white;}
 </style>
 </head>
 
 <body>
 
-<h2>類語・対義語ゲーム</h2>
+<h2>TOEIC 類語・対義語ゲーム</h2>
+
 <div id="target"></div>
 <div id="question"></div>
-
-<div class="grid" id="grid"></div>
-
-<div id="controls">
-  <button onclick="toggleBGM()">BGM ON/OFF</button>
-</div>
+<div id="grid" class="grid"></div>
 
 <p id="result"></p>
+<p id="jp"></p>
+
+<button onclick="toggleBGM()">BGM ON/OFF</button>
+<button onclick="toggleReview()">復習モード OFF</button>
 
 <audio id="correctSound" src="correct.mp3"></audio>
 <audio id="wrongSound" src="wrong.mp3"></audio>
 <audio id="bgm" src="bgm.mp3" loop></audio>
 
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#eef3ff">
-
 <script>
 const data = [
-{w:"increase", s:["rise","grow","expand"], a:["decrease","decline","reduce"]},
-{w:"decrease", s:["decline","drop","reduce"], a:["increase","rise"]},
-{w:"fluctuation", s:["variation","instability"], a:["stability"]},
-{w:"accomplish", s:["achieve","complete"], a:["fail","neglect"]},
-{w:"profitable", s:["lucrative"], a:["unprofitable","costly"]},
-{w:"administer", s:["manage","oversee"], a:["neglect"]},
-{w:"implement", s:["carry out","enforce","execute"], a:["ignore","abandon"]},
-{w:"analyze", s:["examine","evaluate"], a:["ignore"]},
-{w:"evaluate", s:["assess","appraise","judge"], a:["ignore"]},
-{w:"contract", s:["agreement"], a:[]},
-{w:"negotiate", s:["bargain","discuss"], a:["refuse"]},
-{w:"compensation", s:["payment","reimbursement"], a:[]},
-{w:"policy", s:["guideline","regulation"], a:[]},
-{w:"enhance", s:["improve","boost"], a:["worsen","deteriorate"]},
-{w:"streamline", s:["simplify","optimize"], a:["complicate"]},
-{w:"adverse", s:["negative","harmful","unfavorable"], a:["beneficial","favorable"]},
-{w:"inefficiency", s:["wastefulness","ineffectiveness"], a:["efficiency"]},
-{w:"mitigate", s:["alleviate","reduce"], a:["worsen"]},
-{w:"anticipate", s:["expect","foresee"], a:["doubt"]},
-{w:"tentative", s:["provisional","uncertain"], a:["final","confirmed"]},
-{w:"accurate", s:["precise","exact"], a:["inaccurate"]},
-{w:"reliable", s:["dependable"], a:["unreliable"]},
-{w:"authentic", s:[], a:["fake"]},
-{w:"handle", s:["deal with","manage"], a:[]},
-{w:"resolve", s:["settle","fix"], a:[]},
-{w:"affiliated", s:["associated"], a:[]},
-{w:"allocate", s:["distribute","assign"], a:["withhold"]},
-{w:"revenue", s:["income","earnings"], a:["loss"]},
-{w:"expenditure", s:["expense","cost"], a:["income"]},
-{w:"diverse", s:["varied"], a:["uniform"]},
-{w:"commitment", s:["dedication"], a:[]},
-{w:"proactively", s:["actively"], a:["passively"]},
-{w:"meticulous", s:["careful","precise"], a:["careless"]},
-{w:"significant", s:["important","substantial"], a:["minor"]},
-{w:"essential", s:["necessary"], a:[]},
+{w:"increase", m:"増加する", s:["rise","grow","expand"], a:["decrease","decline","reduce"]},
+{w:"decrease", m:"減少する", s:["decline","drop","reduce"], a:["increase","rise"]},
+{w:"fluctuation", m:"変動", s:["variation","instability"], a:["stability"]},
+{w:"accomplish", m:"達成する", s:["achieve","complete"], a:["fail","neglect"]},
+{w:"profitable", m:"利益の出る", s:["lucrative"], a:["unprofitable","costly"]},
+{w:"administer", m:"管理する", s:["manage","oversee"], a:["neglect"]},
+{w:"implement", m:"実行する", s:["carry out","enforce","execute"], a:["ignore","abandon"]},
+{w:"analyze", m:"分析する", s:["examine","evaluate"], a:["ignore"]},
+{w:"evaluate", m:"評価する", s:["assess","appraise","judge"], a:["ignore"]},
+{w:"contract", m:"契約", s:["agreement"], a:[]},
+{w:"negotiate", m:"交渉する", s:["bargain","discuss"], a:["refuse"]},
+{w:"compensation", m:"補償", s:["payment","reimbursement"], a:[]},
+{w:"policy", m:"方針", s:["guideline","regulation"], a:[]},
+{w:"enhance", m:"向上させる", s:["improve","boost"], a:["worsen","deteriorate"]},
+{w:"streamline", m:"効率化する", s:["simplify","optimize"], a:["complicate"]},
+{w:"adverse", m:"不利な", s:["negative","harmful","unfavorable"], a:["beneficial","favorable"]},
+{w:"inefficiency", m:"非効率", s:["wastefulness","ineffectiveness"], a:["efficiency"]},
+{w:"mitigate", m:"緩和する", s:["alleviate","reduce"], a:["worsen"]},
+{w:"anticipate", m:"予測する", s:["expect","foresee"], a:["doubt"]},
+{w:"tentative", m:"暫定的な", s:["provisional","uncertain"], a:["final","confirmed"]},
+{w:"accurate", m:"正確な", s:["precise","exact"], a:["inaccurate"]},
+{w:"reliable", m:"信頼できる", s:["dependable"], a:["unreliable"]},
+{w:"authentic", m:"本物の", s:[], a:["fake"]},
+{w:"handle", m:"対処する", s:["deal with","manage"], a:[]},
+{w:"resolve", m:"解決する", s:["settle","fix"], a:[]},
+{w:"affiliated", m:"提携している", s:["associated"], a:[]},
+{w:"allocate", m:"割り当てる", s:["distribute","assign"], a:["withhold"]},
+{w:"revenue", m:"収益", s:["income","earnings"], a:["loss"]},
+{w:"expenditure", m:"支出", s:["expense","cost"], a:["income"]},
+{w:"diverse", m:"多様な", s:["varied"], a:["uniform"]},
+{w:"commitment", m:"献身・責任", s:["dedication"], a:[]},
+{w:"proactively", m:"積極的に", s:["actively"], a:["passively"]},
+{w:"meticulous", m:"細かいところまで注意深い", s:["careful","precise"], a:["careless"]},
+{w:"significant", m:"重要な", s:["important","substantial"], a:["minor"]},
+{w:"essential", m:"不可欠な", s:["necessary"], a:[]},
 
-{w:"acquire", s:["obtain","gain","purchase"], a:["lose"]},
-{w:"adjacent", s:["next to","beside"], a:["far from"]},
-{w:"alternative", s:["option","substitute"], a:["necessity"]},
-{w:"authenticate", s:["verify","validate"], a:["falsify"]},
-{w:"authorization", s:["approval","permission"], a:["prohibition"]},
-{w:"delegate", s:["assign","entrust"], a:["retain"]},
-{w:"endorse", s:["support","approve"], a:["oppose"]},
-{w:"entail", s:["involve","require"], a:["exclude"]},
-{w:"facilitate", s:["ease","assist"], a:["hinder"]},
-{w:"integral", s:["essential","vital"], a:["unnecessary"]},
-{w:"inventory", s:["stock","supply"], a:["shortage"]},
-{w:"lucrative", s:["profitable","rewarding"], a:["unprofitable"]},
-{w:"sustain", s:["maintain","support"], a:["discontinue"]},
-{w:"transaction", s:["deal","exchange"], a:["cancellation"]},
-{w:"transparent", s:["clear","open"], a:["unclear"]},
-{w:"utilize", s:["use","employ"], a:["waste"]},
-{w:"versatile", s:["flexible","adaptable"], a:["limited"]},
-{w:"vulnerable", s:["weak","exposed"], a:["secure"]},
-{w:"worthwhile", s:["rewarding","valuable"], a:["pointless"]},
+{w:"acquire", m:"獲得する", s:["obtain","gain","purchase"], a:["lose"]},
+{w:"adjacent", m:"隣接した", s:["next to","beside"], a:["far from"]},
+{w:"alternative", m:"代替案", s:["option","substitute"], a:["necessity"]},
+{w:"authenticate", m:"認証する", s:["verify","validate"], a:["falsify"]},
+{w:"authorization", m:"許可", s:["approval","permission"], a:["prohibition"]},
+{w:"delegate", m:"委任する", s:["assign","entrust"], a:["retain"]},
+{w:"endorse", m:"支持する", s:["support","approve"], a:["oppose"]},
+{w:"entail", m:"伴う", s:["involve","require"], a:["exclude"]},
+{w:"facilitate", m:"促進する", s:["ease","assist"], a:["hinder"]},
+{w:"integral", m:"不可欠な", s:["essential","vital"], a:["unnecessary"]},
+{w:"inventory", m:"在庫", s:["stock","supply"], a:["shortage"]},
+{w:"lucrative", m:"儲かる", s:["profitable","rewarding"], a:["unprofitable"]},
+{w:"sustain", m:"維持する", s:["maintain","support"], a:["discontinue"]},
+{w:"transaction", m:"取引", s:["deal","exchange"], a:["cancellation"]},
+{w:"transparent", m:"透明な・明確な", s:["clear","open"], a:["unclear"]},
+{w:"utilize", m:"利用する", s:["use","employ"], a:["waste"]},
+{w:"versatile", m:"多用途な", s:["flexible","adaptable"], a:["limited"]},
+{w:"vulnerable", m:"弱い・傷つきやすい", s:["weak","exposed"], a:["secure"]},
+{w:"worthwhile", m:"価値がある", s:["rewarding","valuable"], a:["pointless"]},
 
-{w:"abandon", s:["desert","leave"], a:["keep","retain"]},
-{w:"adjust", s:["adapt","modify"], a:["ignore"]},
-{w:"address", s:["deal with","handle"], a:["ignore"]},
-{w:"approve", s:["authorize","endorse"], a:["reject","oppose"]},
-{w:"arrange", s:["organize","set up"], a:["disorganize"]},
-{w:"assess", s:["evaluate","appraise"], a:["ignore"]},
-{w:"assign", s:["allocate","delegate"], a:["retain"]},
-{w:"assist", s:["help","aid"], a:["hinder"]},
-{w:"benefit", s:["advantage","profit"], a:["disadvantage"]},
-{w:"capacity", s:["ability","capability"], a:["inability"]},
-{w:"cease", s:["stop","halt"], a:["continue","resume"]},
-{w:"compete", s:["rival"], a:["cooperate"]},
-{w:"comply", s:["conform","obey"], a:["violate","disobey"]},
-{w:"conduct", s:["carry out","perform"], a:["neglect"]},
-{w:"confirm", s:["verify","validate"], a:["deny","cancel"]},
-{w:"conserve", s:["preserve","save"], a:["waste"]},
-{w:"consult", s:["ask","confer"], a:["ignore"]},
-{w:"consume", s:["use up","spend"], a:["preserve","save"]},
-{w:"contribute", s:["donate","add"], a:["withhold"]},
-{w:"coordinate", s:["organize","align"], a:["disorganize"]},
-{w:"criticize", s:["condemn","censure"], a:["praise"]},
-{w:"decline", s:["decrease","drop"], a:["increase","rise"]},
-{w:"deliver", s:["send","provide"], a:["withhold"]},
-{w:"demand", s:["request","require"], a:["supply"]},
-{w:"distribute", s:["allocate","deliver"], a:["collect","withhold"]},
-{w:"ensure", s:["guarantee","make sure"], a:["risk"]},
-{w:"exhibit", s:["display","show"], a:["conceal"]},
-{w:"expand", s:["enlarge","extend"], a:["reduce"]},
-{w:"guarantee", s:["assure","warrant"], a:["doubt"]},
-{w:"identify", s:["recognize","determine"], a:["ignore"]},
-{w:"improve", s:["enhance","upgrade"], a:["worsen"]},
-{w:"infer", s:["deduce","conclude"], a:[]},
-{w:"maintain", s:["sustain","preserve"], a:["abandon"]},
-{w:"monitor", s:["watch","observe"], a:["ignore"]},
-{w:"obtain", s:["acquire","get"], a:["lose"]},
-{w:"permit", s:["allow","authorize"], a:["forbid","prohibit"]},
-{w:"postpone", s:["delay","put off"], a:["advance"]},
-{w:"prioritize", s:["rank","order"], a:["ignore"]},
-{w:"promote", s:["advance","advertise"], a:["demote","hinder"]},
-{w:"provide", s:["supply","offer"], a:["withhold"]},
-{w:"release", s:["free","launch"], a:["hold back","retain"]},
-{w:"replace", s:["substitute","exchange"], a:["keep"]},
-{w:"require", s:["need","demand"], a:["waive"]},
-{w:"respond", s:["reply","answer"], a:["ignore"]},
-{w:"select", s:["choose","pick"], a:["reject"]},
-{w:"submit", s:["present","hand in"], a:["withhold"]},
-{w:"support", s:["assist","back"], a:["oppose"]},
-{w:"transfer", s:["move","shift"], a:["retain"]},
-{w:"update", s:["revise","refresh"], a:["outdate"]},
-{w:"urgent", s:["pressing","critical"], a:["nonurgent","trivial"]},
-{w:"validate", s:["confirm","verify"], a:["invalidate"]},
-{w:"withdraw", s:["remove","pull out"], a:["deposit","invest"]}
+{w:"abandon", m:"放棄する", s:["desert","leave"], a:["keep","retain"]},
+{w:"adjust", m:"調整する", s:["adapt","modify"], a:["ignore"]},
+{w:"address", m:"対処する", s:["deal with","handle"], a:["ignore"]},
+{w:"approve", m:"承認する", s:["authorize","endorse"], a:["reject","oppose"]},
+{w:"arrange", m:"手配する", s:["organize","set up"], a:["disorganize"]},
+{w:"assess", m:"評価する", s:["evaluate","appraise"], a:["ignore"]},
+{w:"assign", m:"割り当てる", s:["allocate","delegate"], a:["retain"]},
+{w:"assist", m:"支援する", s:["help","aid"], a:["hinder"]},
+{w:"benefit", m:"利益", s:["advantage","profit"], a:["disadvantage"]},
+{w:"capacity", m:"能力・容量", s:["ability","capability"], a:["inability"]},
+{w:"cease", m:"停止する", s:["stop","halt"], a:["continue","resume"]},
+{w:"compete", m:"競争する", s:["rival"], a:["cooperate"]},
+{w:"comply", m:"従う", s:["conform","obey"], a:["violate","disobey"]},
+{w:"conduct", m:"実施する", s:["carry out","perform"], a:["neglect"]},
+{w:"confirm", m:"確認する", s:["verify","validate"], a:["deny","cancel"]},
+{w:"conserve", m:"節約する", s:["preserve","save"], a:["waste"]},
+{w:"consult", m:"相談する", s:["ask","confer"], a:["ignore"]},
+{w:"consume", m:"消費する", s:["use up","spend"], a:["preserve","save"]},
+{w:"contribute", m:"貢献する", s:["donate","add"], a:["withhold"]},
+{w:"coordinate", m:"調整する", s:["organize","align"], a:["disorganize"]},
+{w:"criticize", m:"批判する", s:["condemn","censure"], a:["praise"]},
+{w:"decline", m:"減少する", s:["decrease","drop"], a:["increase","rise"]},
+{w:"deliver", m:"配達する", s:["send","provide"], a:["withhold"]},
+{w:"demand", m:"要求する", s:["request","require"], a:["supply"]},
+{w:"distribute", m:"配布する", s:["allocate","deliver"], a:["collect","withhold"]},
+{w:"ensure", m:"確実にする", s:["guarantee","make sure"], a:["risk"]},
+{w:"exhibit", m:"展示する", s:["display","show"], a:["conceal"]},
+{w:"expand", m:"拡大する", s:["enlarge","extend"], a:["reduce"]},
+{w:"guarantee", m:"保証する", s:["assure","warrant"], a:["doubt"]},
+{w:"identify", m:"特定する", s:["recognize","determine"], a:["ignore"]},
+{w:"improve", m:"改善する", s:["enhance","upgrade"], a:["worsen"]},
+{w:"infer", m:"推測する", s:["deduce","conclude"], a:[]},
+{w:"maintain", m:"維持する", s:["sustain","preserve"], a:["abandon"]},
+{w:"monitor", m:"監視する", s:["watch","observe"], a:["ignore"]},
+{w:"obtain", m:"得る", s:["acquire","get"], a:["lose"]},
+{w:"permit", m:"許可する", s:["allow","authorize"], a:["forbid","prohibit"]},
+{w:"postpone", m:"延期する", s:["delay","put off"], a:["advance"]},
+{w:"prioritize", m:"優先する", s:["rank","order"], a:["ignore"]},
+{w:"promote", m:"促進する・昇進させる", s:["advance","advertise"], a:["demote","hinder"]},
+{w:"provide", m:"提供する", s:["supply","offer"], a:["withhold"]},
+{w:"release", m:"解放する", s:["free","launch"], a:["hold back","retain"]},
+{w:"replace", m:"置き換える", s:["substitute","exchange"], a:["keep"]},
+{w:"require", m:"必要とする", s:["need","demand"], a:["waive"]},
+{w:"respond", m:"応答する", s:["reply","answer"], a:["ignore"]},
+{w:"select", m:"選ぶ", s:["choose","pick"], a:["reject"]},
+{w:"submit", m:"提出する", s:["present","hand in"], a:["withhold"]},
+{w:"support", m:"支援する", s:["assist","back"], a:["oppose"]},
+{w:"transfer", m:"移動する", s:["move","shift"], a:["retain"]},
+{w:"update", m:"更新する", s:["revise","refresh"], a:["outdate"]},
+{w:"urgent", m:"緊急の", s:["pressing","critical"], a:["nonurgent","trivial"]},
+{w:"validate", m:"検証する", s:["confirm","verify"], a:["invalidate"]},
+{w:"withdraw", m:"引き出す", s:["remove","pull out"], a:["deposit","invest"]},
+{w:"abide", m:"従う", s:["comply","conform"], a:["violate"]},
+{w:"abolish", m:"廃止する", s:["eliminate","eradicate"], a:["establish"]},
+{w:"abrupt", m:"突然の", s:["sudden","unexpected"], a:["gradual"]},
+{w:"abstract", m:"抽象的な", s:["conceptual"], a:["concrete"]},
+{w:"accelerate", m:"加速する", s:["speed up"], a:["decelerate"]},
+{w:"accessible", m:"利用しやすい", s:["available"], a:["inaccessible"]},
+{w:"accommodate", m:"対応する", s:["adapt","adjust"], a:["refuse"]},
+{w:"accumulate", m:"蓄積する", s:["gather","collect"], a:["disperse"]},
+{w:"acknowledge", m:"認める", s:["admit","recognize"], a:["deny"]},
+{w:"acquaint", m:"知らせる", s:["inform"], a:["ignore"]},
+
+{w:"adhesive", m:"粘着性の", s:["sticky"], a:["nonadhesive"]},
+{w:"adjourn", m:"延期する", s:["postpone"], a:["continue"]},
+{w:"advocate", m:"提唱する", s:["support","promote"], a:["oppose"]},
+{w:"aesthetic", m:"美的な", s:["artistic"], a:["ugly"]},
+{w:"aggregate", m:"合計する", s:["total"], a:["separate"]},
+{w:"alleviate", m:"軽減する", s:["mitigate","ease"], a:["worsen"]},
+{w:"allocate", m:"割り当てる", s:["assign"], a:["withhold"]},
+{w:"ambiguous", m:"曖昧な", s:["unclear"], a:["clear"]},
+{w:"amend", m:"修正する", s:["revise"], a:["keep"]},
+{w:"ample", m:"十分な", s:["abundant"], a:["insufficient"]},
+
+{w:"analogy", m:"類似", s:["similarity"], a:["difference"]},
+{w:"annex", m:"併合する", s:["attach"], a:["separate"]},
+{w:"anonymous", m:"匿名の", s:["nameless"], a:["identified"]},
+{w:"anticipate", m:"予期する", s:["expect"], a:["doubt"]},
+{w:"apparent", m:"明らかな", s:["obvious"], a:["unclear"]},
+{w:"appease", m:"なだめる", s:["calm"], a:["provoke"]},
+{w:"apprehend", m:"理解する", s:["grasp"], a:["misunderstand"]},
+{w:"arbitrary", m:"任意の", s:["random"], a:["systematic"]},
+{w:"archive", m:"記録保管する", s:["store"], a:["discard"]},
+{w:"articulate", m:"明確に述べる", s:["express"], a:["mumble"]},
+
+{w:"ascend", m:"上昇する", s:["rise"], a:["descend"]},
+{w:"aspire", m:"志す", s:["aim"], a:["abandon"]},
+{w:"assert", m:"主張する", s:["claim"], a:["deny"]},
+{w:"assimilate", m:"同化する", s:["absorb"], a:["separate"]},
+{w:"attain", m:"達成する", s:["achieve"], a:["fail"]},
+{w:"augment", m:"増やす", s:["increase"], a:["decrease"]},
+{w:"authentic", m:"本物の", s:["genuine"], a:["fake"]},
+{w:"authorize", m:"許可する", s:["permit"], a:["forbid"]},
+{w:"autonomous", m:"自律した", s:["independent"], a:["dependent"]},
+{w:"avail", m:"役立つ", s:["benefit"], a:["harm"]},
+
+{w:"backlog", m:"未処理案件", s:["delay"], a:["completion"]},
+{w:"bypass", m:"回避する", s:["avoid"], a:["confront"]},
+{w:"capitalize", m:"活用する", s:["utilize"], a:["waste"]},
+{w:"cease", m:"停止する", s:["stop"], a:["continue"]},
+{w:"coherent", m:"一貫した", s:["logical"], a:["inconsistent"]},
+{w:"commence", m:"開始する", s:["begin"], a:["end"]},
+{w:"compile", m:"まとめる", s:["collect"], a:["scatter"]},
+{w:"complement", m:"補完する", s:["complete"], a:["lack"]},
+{w:"comply", m:"従う", s:["obey"], a:["violate"]},
+{w:"concur", m:"同意する", s:["agree"], a:["disagree"]},
+
+{w:"consolidate", m:"強化する", s:["strengthen"], a:["weaken"]},
+{w:"constrain", m:"制約する", s:["restrict"], a:["free"]},
+{w:"contemplate", m:"熟考する", s:["consider"], a:["ignore"]},
+{w:"contradict", m:"矛盾する", s:["oppose"], a:["support"]},
+{w:"convene", m:"招集する", s:["assemble"], a:["dismiss"]},
+{w:"correlate", m:"相関する", s:["relate"], a:["disconnect"]},
+{w:"credible", m:"信頼できる", s:["believable"], a:["unreliable"]},
+{w:"curtail", m:"削減する", s:["reduce"], a:["expand"]},
+{w:"deduce", m:"推論する", s:["infer"], a:["guess"]},
+{w:"deficit", m:"不足", s:["shortage"], a:["surplus"]},
+
+{w:"delineate", m:"詳述する", s:["describe"], a:["confuse"]},
+{w:"denote", m:"意味する", s:["indicate"], a:["mislead"]},
+{w:"deplete", m:"枯渇させる", s:["exhaust"], a:["restore"]},
+{w:"derive", m:"引き出す", s:["obtain"], a:["lose"]},
+{w:"deteriorate", m:"悪化する", s:["worsen"], a:["improve"]},
+{w:"disclose", m:"公開する", s:["reveal"], a:["conceal"]},
+{w:"disperse", m:"分散する", s:["scatter"], a:["gather"]},
+{w:"dissuade", m:"思いとどまらせる", s:["discourage"], a:["encourage"]},
+{w:"diverge", m:"分岐する", s:["separate"], a:["converge"]},
+{w:"elicit", m:"引き出す", s:["evoke"], a:["suppress"]},
+
+{w:"embark", m:"着手する", s:["begin"], a:["stop"]},
+{w:"emerge", m:"現れる", s:["appear"], a:["disappear"]},
+{w:"empirical", m:"実証的な", s:["practical"], a:["theoretical"]},
+{w:"encompass", m:"含む", s:["include"], a:["exclude"]},
+{w:"endeavor", m:"努力する", s:["try"], a:["quit"]},
+{w:"enhance", m:"向上させる", s:["improve"], a:["worsen"]},
+{w:"entail", m:"伴う", s:["involve"], a:["exclude"]},
+{w:"eradicate", m:"根絶する", s:["eliminate"], a:["establish"]},
+{w:"escalate", m:"悪化する", s:["increase"], a:["decrease"]},
+{w:"evaluate", m:"評価する", s:["assess"], a:["ignore"]},
+{w:"abide by", m:"従う", s:["comply with","follow"], a:["violate"]},
+{w:"account for", m:"説明する・占める", s:["explain","constitute"], a:["ignore"]},
+{w:"adhere to", m:"従う", s:["comply with"], a:["disregard"]},
+{w:"be entitled to", m:"権利がある", s:["be eligible for"], a:["be denied"]},
+{w:"bill", m:"請求する", s:["charge"], a:["refund"]},
+
+{w:"consecutive", m:"連続した", s:["successive"], a:["intermittent"]},
+{w:"contractual", m:"契約上の", s:["binding"], a:["optional"]},
+{w:"correspond", m:"一致する", s:["match"], a:["differ"]},
+{w:"designate", m:"指定する", s:["assign","appoint"], a:["remove"]},
+{w:"discrepancy", m:"不一致", s:["inconsistency"], a:["agreement"]},
+{w:"dispatch", m:"発送する", s:["send"], a:["hold"]},
+
+{w:"enclose", m:"同封する", s:["include"], a:["exclude"]},
+{w:"enroll", m:"登録する", s:["register"], a:["withdraw"]},
+{w:"expedite", m:"迅速化する", s:["speed up"], a:["delay"]},
+{w:"expire", m:"期限切れになる", s:["lapse"], a:["remain valid"]},
+{w:"file", m:"提出する", s:["submit"], a:["withdraw"]},
+{w:"fulfill", m:"満たす", s:["meet","satisfy"], a:["fail"]},
+
+{w:"in accordance with", m:"〜に従って", s:["according to"], a:["against"]},
+{w:"in charge of", m:"担当している", s:["responsible for"], a:["unrelated to"]},
+{w:"inquire", m:"問い合わせる", s:["ask"], a:["ignore"]},
+{w:"invoice", m:"請求書", s:["bill"], a:[]},
+{w:"issue", m:"発行する", s:["release"], a:["withdraw"]},
+
+{w:"liability", m:"負債・責任", s:["debt"], a:["asset"]},
+{w:"notify", m:"通知する", s:["inform"], a:["ignore"]},
+{w:"obligation", m:"義務", s:["duty"], a:["option"]},
+{w:"oversee", m:"監督する", s:["supervise"], a:["neglect"]},
+{w:"pending", m:"保留中の", s:["unresolved"], a:["completed"]},
+{w:"proceed", m:"進む", s:["continue"], a:["halt"]},
+
+{w:"procure", m:"調達する", s:["obtain","acquire"], a:["lose"]},
+{w:"reimburse", m:"払い戻す", s:["repay"], a:["charge"]},
+{w:"remit", m:"送金する", s:["transfer"], a:["withhold"]},
+{w:"reschedule", m:"再調整する", s:["rearrange"], a:["cancel"]},
+{w:"retain", m:"保持する", s:["keep"], a:["release"]},
+{w:"terminate", m:"終了する", s:["end"], a:["continue"]},
+{w:"waive", m:"放棄する", s:["give up"], a:["enforce"]},
+{w:"notion", m:"概念・考え", s:["idea","concept"], a:["reality"]},
+{w:"implication", m:"含意・影響", s:["suggestion","consequence"], a:["irrelevance"]},
+{w:"convey", m:"伝える", s:["communicate","express"], a:["withhold"]},
+{w:"substantiate", m:"立証する", s:["prove","verify"], a:["refute"]},
+{w:"undermine", m:"弱体化させる", s:["weaken"], a:["strengthen"]},
+
+{w:"reinforce", m:"強化する", s:["strengthen","bolster"], a:["weaken"]},
+{w:"bolster", m:"支援する", s:["support","reinforce"], a:["undermine"]},
+{w:"impede", m:"妨げる", s:["hinder","obstruct"], a:["facilitate"]},
+{w:"expedient", m:"都合の良い", s:["convenient"], a:["inconvenient"]},
+
+{w:"feasible", m:"実行可能な", s:["practical","viable"], a:["impractical"]},
+{w:"viable", m:"実行可能な", s:["feasible"], a:["unworkable"]},
+{w:"prevalent", m:"普及している", s:["common","widespread"], a:["rare"]},
+{w:"scarce", m:"不足している", s:["rare","limited"], a:["abundant"]},
+{w:"abundant", m:"豊富な", s:["plentiful"], a:["scarce"]},
+
+{w:"optimize", m:"最適化する", s:["improve efficiency"], a:["worsen"]},
+{w:"surpass", m:"上回る", s:["exceed"], a:["fall short"]},
+{w:"fall short", m:"足りない", s:["fail to reach"], a:["meet","achieve"]},
+
+{w:"compelling", m:"説得力のある", s:["convincing"], a:["unconvincing"]},
+{w:"dubious", m:"疑わしい", s:["questionable"], a:["certain"]},
+{w:"noteworthy", m:"注目すべき", s:["remarkable"], a:["trivial"]},
+{w:"trivial", m:"些細な", s:["insignificant"], a:["significant"]},
+
+{w:"notwithstanding", m:"にもかかわらず", s:["despite"], a:["because of"]},
+{w:"whereas", m:"一方で", s:["while"], a:[]},
+{w:"otherwise", m:"さもなければ", s:["if not"], a:[]},
+{w:"thereby", m:"それによって", s:["thus"], a:[]},
+{w:"hence", m:"それゆえに", s:["therefore"], a:[]},
+
+{w:"contingent on", m:"〜次第で", s:["dependent on"], a:["independent of"]},
+{w:"in light of", m:"〜を考慮して", s:["considering"], a:["ignoring"]},
+{w:"on behalf of", m:"〜を代表して", s:["for"], a:[]},
+{w:"with respect to", m:"〜に関して", s:["regarding"], a:[]},
+{w:"in terms of", m:"〜の観点で", s:["regarding"], a:[]},
+
+{w:"offset", m:"相殺する", s:["compensate"], a:["increase"]},
+{w:"incur", m:"被る（費用など）", s:["sustain"], a:["avoid"]},
+{w:"sustain losses", m:"損失を被る", s:["incur losses"], a:["avoid losses"]},
+{w:"mitigate risks", m:"リスクを軽減する", s:["reduce risks"], a:["increase risks"]},
+{w:"exacerbate", m:"悪化させる", s:["worsen"], a:["alleviate"]},
+
+{w:"align with", m:"一致する", s:["match","correspond"], a:["conflict with"]},
+{w:"conflict with", m:"対立する", s:["oppose"], a:["align with"]},
+{w:"compromise", m:"妥協する", s:["concede"], a:["insist"]},
+{w:"insist", m:"主張する", s:["assert"], a:["concede"]},
+{w:"concede", m:"認める", s:["admit"], a:["deny"]},
+
+{w:"elaborate", m:"詳しく述べる", s:["expand"], a:["summarize"]},
+{w:"summarize", m:"要約する", s:["outline"], a:["elaborate"]},
+{w:"outline", m:"概説する", s:["summarize"], a:["detail"]},
+{w:"specify", m:"明示する", s:["clarify"], a:["vague"]},
+
+{w:"vague", m:"曖昧な", s:["unclear"], a:["clear"]},
+{w:"explicit", m:"明確な", s:["clear"], a:["implicit"]},
+{w:"implicit", m:"暗黙の", s:["implied"], a:["explicit"]},
+{w:"derive from", m:"由来する", s:["originate from"], a:["lead to"]},
+{w:"lead to", m:"引き起こす", s:["result in"], a:["prevent"]},
+
+{w:"trigger", m:"引き起こす", s:["cause"], a:["prevent"]},
+{w:"prevent", m:"防ぐ", s:["avoid"], a:["cause"]},
+{w:"justify", m:"正当化する", s:["defend"], a:["criticize"]},
+{w:"praise", m:"称賛する", s:["commend"], a:["criticize"]}
 ];
 
-let current, mode, correctCount;
-let bgmStarted = false;
+// 🔥 重複単語を統合（削除せずマージ）
+const mergedDataMap = {};
 
-function playSound(id){
-  const audio = document.getElementById(id);
-  audio.currentTime = 0;
-  audio.play();
-}
-
-function toggleBGM(){
-  const bgm = document.getElementById("bgm");
-
-  if(!bgmStarted){
-    bgm.play();
-    bgmStarted = true;
-  }else{
-    bgm.paused ? bgm.play() : bgm.pause();
+data.forEach(item => {
+  if(!mergedDataMap[item.w]){
+    mergedDataMap[item.w] = {
+      w: item.w,
+      m: item.m,
+      s: [...(item.s || [])],
+      a: [...(item.a || [])]
+    };
+  } else {
+    mergedDataMap[item.w].s.push(...(item.s || []));
+    mergedDataMap[item.w].a.push(...(item.a || []));
   }
-}
+});
+
+// 🔥 重複削除（中身）
+const mergedData = Object.values(mergedDataMap).map(item => ({
+  w: item.w,
+  m: item.m,
+  s: [...new Set(item.s)],
+  a: [...new Set(item.a)]
+}));
+
+// 🔥 以降はこれを使う
+
+
+let current, mode, correctCount = 0;
+let answered = false;
+
+let answerCount = 1;
+
+let wrongList = [];
+let reviewMode = false;
 
 function newRound(){
+  answered = false;
   correctCount = 0;
+
   document.getElementById("result").innerText="";
+  document.getElementById("jp").innerText="";
 
-  current = data[Math.floor(Math.random()*data.length)];
-  mode = Math.random()>0.5 ? "s" : "a";
+   let tries = 0;
 
-  if((mode==="a" && current.a.length===0)) return newRound();
+  do{
+    if(reviewMode && wrongList.length > 0){
+      let filtered = mergedData.filter(d => wrongList.includes(d.w));
+      current = filtered[Math.floor(Math.random()*filtered.length)];
+    }else{
+      current = mergedData[Math.floor(Math.random()*mergedData.length)];
+    }
 
+    mode = Math.random()>0.5 ? "s" : "a";
+    tries++;
+
+  }while(mode==="a" && current.a.length===0 && tries < 50);
+  
   document.getElementById("target").innerText = current.w;
   document.getElementById("question").innerText =
     mode==="s" ? "類語を選べ" : "対義語を選べ";
 
   let correctList = mode==="s" ? current.s : current.a;
+  correctList = [correctList[Math.floor(Math.random()*correctList.length)]];
+  answerCount = correctList.length;
   let pool = [];
 
   correctList.forEach(w=>pool.push({word:w,correct:true}));
 
-  while(pool.length<6){
-    let rand = data[Math.floor(Math.random()*data.length)];
-    let list = rand.s.concat(rand.a); // ★修正①
-    let fake = list[Math.floor(Math.random()*list.length)];
-    if(fake && !pool.some(p=>p.word===fake)){
-      pool.push({word:fake,correct:false});
-    }
-  }
+  let safety = 0;
+  while(pool.length < 6 && safety < 50){
+  safety++;
 
-  pool.sort(()=>Math.random()-0.5);
+  let r = mergedData[Math.floor(Math.random()*mergedData.length)];
+  let list = (r.s || []).concat(r.a || []);
 
-  let html="";
-  pool.forEach(p=>{
-    html += `<div class="card" data-correct="${p.correct}" onclick="selectCard(this,${p.correct})">${p.word}</div>`;
-  });
+  if(list.length === 0) continue;
 
-  document.getElementById("grid").innerHTML = html;
+  let fake = list[Math.floor(Math.random()*list.length)];
+
+if(fake && !pool.some(p=>p.word===fake) && fake !== current.w){
+  pool.push({word:fake, correct:false});
+ }
+}
+
+
+pool.sort(()=>Math.random()-0.5);
+
+document.getElementById("grid").innerHTML =
+  pool.map(p=>`
+    <div class="card" data-correct="${p.correct}" onclick="selectCard(this,${p.correct})">
+      ${p.word}
+    </div>
+  `).join("");
 }
 
 function selectCard(el,isCorrect){
 
-  // ★修正②：連打防止
-  if(el.classList.contains("correct") || el.classList.contains("wrong")) return;
+  if(answered) return;
 
   if(isCorrect){
+    document.getElementById("correctSound").play();
     el.classList.add("correct");
-    playSound("correctSound");
     correctCount++;
 
-    if(correctCount === (mode==="s"?current.s.length:current.a.length)){
-      document.getElementById("result").innerText="OK!";
-      setTimeout(newRound,800);
-    }
+    if(correctCount === answerCount){
+  showAnswer(true);
+}
 
   }else{
+    document.getElementById("wrongSound").play();
+
+    if(!wrongList.includes(current.w)){
+      wrongList.push(current.w);
+    }
+
     el.classList.add("wrong");
-    playSound("wrongSound");
-
-    // ★修正③：全カードロック
-    document.querySelectorAll(".card").forEach(c=>{
-      c.style.pointerEvents = "none";
-    });
-
-    document.querySelectorAll(".card").forEach(card=>{
-      if(card.dataset.correct === "true"){
-        card.classList.add("correct");
-      }
-    });
-
-    document.body.classList.add("shake");
-    setTimeout(()=>document.body.classList.remove("shake"),200);
-
-    document.getElementById("result").innerText="MISS";
-    setTimeout(newRound,1200);
+    showAnswer(false);
   }
 } 
 
-newRound();
+function showAnswer(ok){
+  answered = true;
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
+  // ★全部の正解を表示
+  document.querySelectorAll(".card").forEach(card=>{
+    if(card.dataset.correct === "true"){
+      card.classList.add("correct");
+    }
+  });
+
+  document.getElementById("jp").innerText =
+  "意味：" + current.m +
+  "\n正解：" + (mode==="s" ? current.s.join(", ") : current.a.join(", "));
+
+  document.getElementById("result").innerText =
+  ok ? "OK!" : "MISS（正解を確認しよう）";
+
+  if(ok && reviewMode){
+  wrongList = wrongList.filter(w => w !== current.w);
 }
+
+  setTimeout(newRound,3000);
+}
+
+function toggleReview(){
+  reviewMode = !reviewMode;
+
+  const btn = document.querySelectorAll("button")[1];
+
+  if(reviewMode){
+    btn.innerText = "復習モード ON";
+  }else{
+    btn.innerText = "復習モード OFF";
+  }
+
+  newRound();
+}
+
+function toggleBGM(){
+  const bgm = document.getElementById("bgm");
+  if(bgm.paused){
+    bgm.play();
+  }else{
+    bgm.pause();
+  }
+}
+
+newRound();
 </script>
 
 </body>
