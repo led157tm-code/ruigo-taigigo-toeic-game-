@@ -1,0 +1,305 @@
+<!DOCTYPE html> 
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TOEIC 類語対義語ゲーム</title>
+
+<style>
+body{
+  font-family:sans-serif;
+  text-align:center;
+  background:#eef3ff;
+  transition:0.2s;
+}
+
+.shake{
+  animation:shake 0.2s;
+}
+
+@keyframes shake{
+  0%{transform:translateX(0);}
+  25%{transform:translateX(-5px);}
+  50%{transform:translateX(5px);}
+  75%{transform:translateX(-5px);}
+  100%{transform:translateX(0);}
+}
+
+#target{
+  font-size:26px;
+  margin:10px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  width:90%;
+  max-width:420px;
+  margin:auto;
+}
+
+.card{
+  background:white;
+  padding:12px;
+  border-radius:10px;
+  cursor:pointer;
+  transition:0.2s;
+}
+
+.correct{
+  background:#4CAF50;
+  color:white;
+  transform:scale(1.05);
+}
+
+.wrong{
+  background:#ff4d4d;
+  color:white;
+}
+
+#controls{
+  margin:10px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>類語・対義語ゲーム</h2>
+<div id="target"></div>
+<div id="question"></div>
+
+<div class="grid" id="grid"></div>
+
+<div id="controls">
+  <button onclick="toggleBGM()">BGM ON/OFF</button>
+</div>
+
+<p id="result"></p>
+
+<audio id="correctSound" src="correct.mp3"></audio>
+<audio id="wrongSound" src="wrong.mp3"></audio>
+<audio id="bgm" src="bgm.mp3" loop></audio>
+
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#eef3ff">
+
+<script>
+const data = [/* ←そのまま（省略なしで元のデータをここに） */];
+{w:"increase", s:["rise","grow","expand"], a:["decrease","decline","reduce"]},
+{w:"decrease", s:["decline","drop","reduce"], a:["increase","rise"]},
+{w:"fluctuation", s:["variation","instability"], a:["stability"]},
+{w:"accomplish", s:["achieve","complete"], a:["fail","neglect"]},
+{w:"profitable", s:["lucrative"], a:["unprofitable","costly"]},
+{w:"administer", s:["manage","oversee"], a:["neglect"]},
+{w:"implement", s:["carry out","enforce","execute"], a:["ignore","abandon"]},
+{w:"analyze", s:["examine","evaluate"], a:["ignore"]},
+{w:"evaluate", s:["assess","appraise","judge"], a:["ignore"]},
+{w:"contract", s:["agreement"], a:[]},
+{w:"negotiate", s:["bargain","discuss"], a:["refuse"]},
+{w:"compensation", s:["payment","reimbursement"], a:[]},
+{w:"policy", s:["guideline","regulation"], a:[]},
+{w:"enhance", s:["improve","boost"], a:["worsen","deteriorate"]},
+{w:"streamline", s:["simplify","optimize"], a:["complicate"]},
+{w:"adverse", s:["negative","harmful","unfavorable"], a:["beneficial","favorable"]},
+{w:"inefficiency", s:["wastefulness","ineffectiveness"], a:["efficiency"]},
+{w:"mitigate", s:["alleviate","reduce"], a:["worsen"]},
+{w:"anticipate", s:["expect","foresee"], a:["doubt"]},
+{w:"tentative", s:["provisional","uncertain"], a:["final","confirmed"]},
+{w:"accurate", s:["precise","exact"], a:["inaccurate"]},
+{w:"reliable", s:["dependable"], a:["unreliable"]},
+{w:"authentic", s:[], a:["fake"]},
+{w:"handle", s:["deal with","manage"], a:[]},
+{w:"resolve", s:["settle","fix"], a:[]},
+{w:"affiliated", s:["associated"], a:[]},
+{w:"allocate", s:["distribute","assign"], a:["withhold"]},
+{w:"revenue", s:["income","earnings"], a:["loss"]},
+{w:"expenditure", s:["expense","cost"], a:["income"]},
+{w:"diverse", s:["varied"], a:["uniform"]},
+{w:"commitment", s:["dedication"], a:[]},
+{w:"proactively", s:["actively"], a:["passively"]},
+{w:"meticulous", s:["careful","precise"], a:["careless"]},
+{w:"significant", s:["important","substantial"], a:["minor"]},
+{w:"essential", s:["necessary"], a:[]},
+
+{w:"acquire", s:["obtain","gain","purchase"], a:["lose"]},
+{w:"adjacent", s:["next to","beside"], a:["far from"]},
+{w:"alternative", s:["option","substitute"], a:["necessity"]},
+{w:"authenticate", s:["verify","validate"], a:["falsify"]},
+{w:"authorization", s:["approval","permission"], a:["prohibition"]},
+{w:"delegate", s:["assign","entrust"], a:["retain"]},
+{w:"endorse", s:["support","approve"], a:["oppose"]},
+{w:"entail", s:["involve","require"], a:["exclude"]},
+{w:"facilitate", s:["ease","assist"], a:["hinder"]},
+{w:"integral", s:["essential","vital"], a:["unnecessary"]},
+{w:"inventory", s:["stock","supply"], a:["shortage"]},
+{w:"lucrative", s:["profitable","rewarding"], a:["unprofitable"]},
+{w:"sustain", s:["maintain","support"], a:["discontinue"]},
+{w:"transaction", s:["deal","exchange"], a:["cancellation"]},
+{w:"transparent", s:["clear","open"], a:["unclear"]},
+{w:"utilize", s:["use","employ"], a:["waste"]},
+{w:"versatile", s:["flexible","adaptable"], a:["limited"]},
+{w:"vulnerable", s:["weak","exposed"], a:["secure"]},
+{w:"worthwhile", s:["rewarding","valuable"], a:["pointless"]},
+
+{w:"abandon", s:["desert","leave"], a:["keep","retain"]},
+{w:"adjust", s:["adapt","modify"], a:["ignore"]},
+{w:"address", s:["deal with","handle"], a:["ignore"]},
+{w:"approve", s:["authorize","endorse"], a:["reject","oppose"]},
+{w:"arrange", s:["organize","set up"], a:["disorganize"]},
+{w:"assess", s:["evaluate","appraise"], a:["ignore"]},
+{w:"assign", s:["allocate","delegate"], a:["retain"]},
+{w:"assist", s:["help","aid"], a:["hinder"]},
+{w:"benefit", s:["advantage","profit"], a:["disadvantage"]},
+{w:"capacity", s:["ability","capability"], a:["inability"]},
+{w:"cease", s:["stop","halt"], a:["continue","resume"]},
+{w:"compete", s:["rival"], a:["cooperate"]},
+{w:"comply", s:["conform","obey"], a:["violate","disobey"]},
+{w:"conduct", s:["carry out","perform"], a:["neglect"]},
+{w:"confirm", s:["verify","validate"], a:["deny","cancel"]},
+{w:"conserve", s:["preserve","save"], a:["waste"]},
+{w:"consult", s:["ask","confer"], a:["ignore"]},
+{w:"consume", s:["use up","spend"], a:["preserve","save"]},
+{w:"contribute", s:["donate","add"], a:["withhold"]},
+{w:"coordinate", s:["organize","align"], a:["disorganize"]},
+{w:"criticize", s:["condemn","censure"], a:["praise"]},
+{w:"decline", s:["decrease","drop"], a:["increase","rise"]},
+{w:"deliver", s:["send","provide"], a:["withhold"]},
+{w:"demand", s:["request","require"], a:["supply"]},
+{w:"distribute", s:["allocate","deliver"], a:["collect","withhold"]},
+{w:"ensure", s:["guarantee","make sure"], a:["risk"]},
+{w:"exhibit", s:["display","show"], a:["conceal"]},
+{w:"expand", s:["enlarge","extend"], a:["reduce"]},
+{w:"guarantee", s:["assure","warrant"], a:["doubt"]},
+{w:"identify", s:["recognize","determine"], a:["ignore"]},
+{w:"improve", s:["enhance","upgrade"], a:["worsen"]},
+{w:"infer", s:["deduce","conclude"], a:[]},
+{w:"maintain", s:["sustain","preserve"], a:["abandon"]},
+{w:"monitor", s:["watch","observe"], a:["ignore"]},
+{w:"obtain", s:["acquire","get"], a:["lose"]},
+{w:"permit", s:["allow","authorize"], a:["forbid","prohibit"]},
+{w:"postpone", s:["delay","put off"], a:["advance"]},
+{w:"prioritize", s:["rank","order"], a:["ignore"]},
+{w:"promote", s:["advance","advertise"], a:["demote","hinder"]},
+{w:"provide", s:["supply","offer"], a:["withhold"]},
+{w:"release", s:["free","launch"], a:["hold back","retain"]},
+{w:"replace", s:["substitute","exchange"], a:["keep"]},
+{w:"require", s:["need","demand"], a:["waive"]},
+{w:"respond", s:["reply","answer"], a:["ignore"]},
+{w:"select", s:["choose","pick"], a:["reject"]},
+{w:"submit", s:["present","hand in"], a:["withhold"]},
+{w:"support", s:["assist","back"], a:["oppose"]},
+{w:"transfer", s:["move","shift"], a:["retain"]},
+{w:"update", s:["revise","refresh"], a:["outdate"]},
+{w:"urgent", s:["pressing","critical"], a:["nonurgent","trivial"]},
+{w:"validate", s:["confirm","verify"], a:["invalidate"]},
+{w:"withdraw", s:["remove","pull out"], a:["deposit","invest"]}
+];
+
+let current, mode, correctCount;
+let bgmStarted = false;
+
+function playSound(id){
+  const audio = document.getElementById(id);
+  audio.currentTime = 0;
+  audio.play();
+}
+
+function toggleBGM(){
+  const bgm = document.getElementById("bgm");
+
+  if(!bgmStarted){
+    bgm.play();
+    bgmStarted = true;
+  }else{
+    bgm.paused ? bgm.play() : bgm.pause();
+  }
+}
+
+function newRound(){
+  correctCount = 0;
+  document.getElementById("result").innerText="";
+
+  current = data[Math.floor(Math.random()*data.length)];
+  mode = Math.random()>0.5 ? "s" : "a";
+
+  if((mode==="a" && current.a.length===0)) return newRound();
+
+  document.getElementById("target").innerText = current.w;
+  document.getElementById("question").innerText =
+    mode==="s" ? "類語を選べ" : "対義語を選べ";
+
+  let correctList = mode==="s" ? current.s : current.a;
+  let pool = [];
+
+  correctList.forEach(w=>pool.push({word:w,correct:true}));
+
+  while(pool.length<6){
+    let rand = data[Math.floor(Math.random()*data.length)];
+    let list = rand.s.concat(rand.a); // ★修正①
+    let fake = list[Math.floor(Math.random()*list.length)];
+    if(fake && !pool.some(p=>p.word===fake)){
+      pool.push({word:fake,correct:false});
+    }
+  }
+
+  pool.sort(()=>Math.random()-0.5);
+
+  let html="";
+  pool.forEach(p=>{
+    html += `<div class="card" data-correct="${p.correct}" onclick="selectCard(this,${p.correct})">${p.word}</div>`;
+  });
+
+  document.getElementById("grid").innerHTML = html;
+}
+
+function selectCard(el,isCorrect){
+
+  // ★修正②：連打防止
+  if(el.classList.contains("correct") || el.classList.contains("wrong")) return;
+
+  if(isCorrect){
+    el.classList.add("correct");
+    playSound("correctSound");
+    correctCount++;
+
+    if(correctCount === (mode==="s"?current.s.length:current.a.length)){
+      document.getElementById("result").innerText="OK!";
+      setTimeout(newRound,800);
+    }
+
+  }else{
+    el.classList.add("wrong");
+    playSound("wrongSound");
+
+    // ★修正③：全カードロック
+    document.querySelectorAll(".card").forEach(c=>{
+      c.style.pointerEvents = "none";
+    });
+
+    document.querySelectorAll(".card").forEach(card=>{
+      if(card.dataset.correct === "true"){
+        card.classList.add("correct");
+      }
+    });
+
+    document.body.classList.add("shake");
+    setTimeout(()=>document.body.classList.remove("shake"),200);
+
+    document.getElementById("result").innerText="MISS";
+    setTimeout(newRound,1200);
+  }
+} 
+
+newRound();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
+
+</body>
+</html>
